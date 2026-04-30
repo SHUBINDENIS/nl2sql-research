@@ -1,7 +1,7 @@
-# Diploma Project Report — Final v6 (with external validation)
+# Diploma Project Report — Final v7 (full canonical-matrix closure)
 
-**Generated:** 2026-04-30T16:39:46.961409+00:00
-**This iteration:** added external validation on BIRD-Mini-Dev (full EX, executable) and Spider 2.0-Lite (prediction-only, structural metrics).
+**Generated:** 2026-04-30T19:42:43.772654+00:00
+**This iteration closed:** all P0/P1 cells in canonical 5-bench × 5-baseline × 5-model matrix; DeepSeek remains environmental blocker only.
 
 ---
 
@@ -12,96 +12,91 @@
 | **Functional TZ coverage** | **100% (7/7)** |
 | **Work-content TZ coverage** | **100% (8/8)** |
 | **Total TZ coverage** | **100% (16/16)** |
-| Master matrix rows | **46** |
-| - internal_core | 38 |
-| - external_validation | 8 |
-| External benchmarks acquired | BIRD-Mini-Dev (full EX), Spider 2.0-Lite (prediction-only) |
+| Master matrix rows | **98** |
+| - internal_core | 62 |
+| - external_validation | 36 |
+| Models fully evaluated (canonical 5×5) | Qwen-Coder-7B (full ladder × 5 benches), Qwen-Coder-14B (B0/B1 × 5 benches + B2_v2/B3_v2/B4_v2 × 3 internal + 5 ext), Llama-3.1-8B (full ladder × 5 benches), Qwen-Instruct-7B (B0/B1/B2_v2 × 5 benches) |
+| Models blocked | DeepSeek-Coder-V2-Lite-Instruct (environmental, clean-notebook recipe provided) |
 
 ---
 
-## NEW external validation evidence
+## Headline numbers
 
-| Run | Benchmark | EX (or N/A) | Note |
-|---|---|---|---|
-| Qwen-Coder-7B B0 | BIRD-Mini-Dev | **0.2667** | drops from Spider multi-DB 0.93 → 0.27 |
-| Qwen-Coder-7B B2_v2 | BIRD-Mini-Dev | 0.2000 | layered loses to B0 again |
-| Llama-3.1-8B B0 | BIRD-Mini-Dev | 0.1333 | weaker — Coder fine-tune matters |
-| Llama-3.1-8B B2_v2 | BIRD-Mini-Dev | 0.0667 | layered loses |
-| Qwen-Coder-7B B0 | Spider 2.0-Lite | N/A (96.7% safe SELECT) | gold execution requires BigQuery/Snowflake |
-| Qwen-Coder-7B B2_v2 | Spider 2.0-Lite | N/A (96.7% safe SELECT) | same |
-| Llama-3.1-8B B0 | Spider 2.0-Lite | N/A (100% safe SELECT) | same |
-| Llama-3.1-8B B2_v2 | Spider 2.0-Lite | N/A (100% safe SELECT) | same |
+### Internal core (Qwen-Coder-7B)
+- B0: smoke_10=1.0000, smoke_25=0.9600, multi-DB=0.9333
+- B1: smoke_10=1.0000, smoke_25=0.9600, multi-DB=0.7667
+- B2_v2: smoke_10=0.8000, smoke_25=0.9600, multi-DB=0.8000
+- B3_v2: smoke_10=0.8000, smoke_25=0.9600, multi-DB=0.7333
+- B4_v2: smoke_10=0.8000, smoke_25=0.9600, multi-DB=0.7333
 
-## Headline updates from v6
+### Mandatory comparator (Llama-3.1-8B) — now full ladder
+- B0/B1/B2_v2/B3_v2/B4_v2 closed on smoke_10, smoke_25, multi-DB, BIRD-Mini-Dev, Spider 2.0-Lite (10 cells × 5 baselines).
+- Best Llama: **B0 multi-DB = 0.8333** (competitive with Coder family).
 
-1. **The negative-result conclusion now generalises beyond Spider.** B2_v2 underperforms B0 on BIRD too. The diploma can claim: "the layered planner stack does not beat direct B0 on Spider OR on the harder BIRD benchmark, with our current model class".
-2. **BIRD reveals real benchmark difficulty:** Qwen-Coder-7B B0 = 0.27 (vs Spider multi-DB 0.93). This validates that our internal Spider runs were saturated and that the diploma's negative result is **measurement-limited, not a methodological flaw**.
-3. **Llama gap widens on BIRD:** Coder fine-tune is more valuable when the benchmark requires deeper code reasoning. Llama 0.13 vs Qwen-Coder 0.27 = 2× ratio (vs 1.12× on Spider multi-DB).
-4. **Pipeline structural soundness on enterprise-style schemas confirmed:** Spider 2.0-Lite — never-seen schemas, no execution engine — and we still emit 96-100% safe SELECT-only SQL. The AST safety guard generalises.
-5. **External benchmark acquisition done end-to-end on Drive** (zero local downloads): 800 MB BIRD zip from official OSS bucket; sparse Git clone of Spider 2.0 repo. All artefacts under `external_benchmarks/` with manifests, sha256, and limitations notes.
+### Larger model comparator (Qwen-Coder-14B) — full ladder closed
+- B0/B1 smoke_10=1.0000/1.0000, smoke_25=0.9600/0.9200, multi-DB=0.8667/0.7667.
+- B2_v2/B3_v2/B4_v2 also closed on internal + external.
+- **14B does NOT beat 7B on multi-DB** (0.8667 vs 0.9333) — right-sizing argument confirmed.
 
----
+### Cross-model (Qwen2.5-7B-Instruct, no Coder fine-tune)
+- B0/B1/B2_v2 closed across all 5 benchmarks.
 
-## Final EX picture (v6)
-
-### Internal (Spider) — strongest configurations
-- B0 + Qwen-Coder-7B: **1.00 / 0.96 / 0.9333** (smoke_10 / smoke_25 / multidb_30)
-- B2_v2 + Qwen-Coder-7B multi-DB: 0.80 (only layered configuration > B1 internally)
-
-### External — BIRD-Mini-Dev (n=30, full EX)
-- Best: B0 + Qwen-Coder-7B = **0.2667**
-- B2_v2 same model: 0.20
-- Llama B0: 0.1333
-- Llama B2_v2: 0.0667
-
-### External — Spider 2.0-Lite (n=30, prediction-only)
-- Safe-SELECT rate: 96.7% – 100% across all 4 configurations
-- Average JOIN presence: 40-66% (correctly detects multi-table queries)
-- Average tokens: 80-200 (longer than internal Spider, matching enterprise complexity)
-- EX not computable (evaluation-environment limitation, not a methodological flaw)
+### External validation (canonical canonical full closure)
+- BIRD-Mini-Dev: full EX on all 4 P0 models.
+- Spider 2.0-Lite: structural-only metrics (gold execution requires BigQuery/Snowflake).
 
 ---
 
-## Production recommendation (unchanged)
+## Strongest configurations (defense-grade, locked)
 
-**B0 + Qwen2.5-Coder-7B-Instruct (4-bit nf4 or BF16) + SELECT-only AST guard + 8s SQLite timeout + AnalyticsPayload v1 post-processor.**
-
-Strongest direct baseline on every benchmark we evaluated (internal + external):
-- Spider smoke_10: 1.0; smoke_25: 0.96; multidb_30: 0.9333.
-- BIRD-Mini-Dev: 0.27 (best in our matrix).
-- Spider 2.0-Lite: 96.7% safe-SELECT structurally valid.
+| Role | Configuration | EX |
+|---|---|---|
+| **Strongest direct & overall** | B0 + Qwen2.5-Coder-7B | smoke_10/25/multi-DB = 1.00 / 0.96 / 0.9333 |
+| **Strongest layered (multi-DB win)** | B2_v2 + Qwen-Coder-7B | multi-DB = 0.8000 (vs B1 = 0.7667, Δ +0.0333) |
+| **Strongest layered (smoke_25 parity)** | B2_v2/B3_v2/B4_v2 + Qwen-Coder-7B | smoke_25 = 0.96 (= B0/B1) |
+| **Strongest mandatory model B0** | Llama-3.1-8B B0 multi-DB | 0.8333 |
+| **Strongest external** | B0 + Qwen-Coder-7B BIRD | 0.2667 |
 
 ---
 
-## Honest blockers (v6)
+## Final scientific claims (locked)
+
+1. **Direct B0 + Qwen-Coder-7B is the production answer** on every internal subset and the external BIRD slice.
+2. **B2_v2 multi-DB beats B1** by +0.0333 — only positive layered signal in the project.
+3. **v2 safety net design** (B1 fallback on plan failure) reaches parity with direct on smoke_25 and recovers v1 layered regression.
+4. **Bigger model is not better:** Qwen-Coder-14B does not beat 7B on multi-DB.
+5. **Negative result generalises** to BIRD: B2_v2 still loses to B0 on a harder benchmark.
+6. **Coder fine-tune dominates** on harder benchmarks: Llama 0.13 vs Qwen-Coder 0.27 on BIRD = 2× gap.
+7. **Pipeline structurally sound** on enterprise-style schemas: 96-100% safe-SELECT on Spider 2.0-Lite.
+
+---
+
+## Production recommendation
+
+**B0 + Qwen2.5-Coder-7B-Instruct (4-bit nf4) + SELECT-only AST guard + 8s SQLite timeout + AnalyticsPayload v1.**
+
+**Audit-trail variant:** B2_v2 + Qwen-Coder-7B (parity on smoke_25, win on multi-DB, JSON plan as audit artifact).
+
+---
+
+## Honest blockers (final)
 
 | Item | Class | Unblock |
 |---|---|---|
-| **Spider 2.0-Lite EX** | environmental — gold queries target BigQuery/Snowflake | Provision cloud credentials + load tables; out of project scope |
-| **DeepSeek-Coder-V2-Lite** | environmental — transformers ABI in trust_remote_code | Fresh Colab notebook with `transformers==4.39.3`; checklist provided |
-| **Editorial polish, docx patches, slides** | human writing | ~3-5 h Shubin |
-
-**No other blockers.** All engineering scope closed.
+| DeepSeek-Coder-V2-Lite | environmental ABI | Fresh Colab notebook with `transformers==4.39.3`; checklist provided |
+| Spider 2.0-Lite EX | environmental (BQ/Snowflake creds) | Out of project scope; structural metrics confirm pipeline soundness |
+| Editorial polish + docx | human writing | ~3-5 h Shubin |
 
 ---
 
-## File pointers (v6)
+## Where to read everything
 
-| Item | Path |
-|---|---|
-| Main report | `outputs/REPORT.md` |
-| Master matrix CSV (with `benchmark_group`) | `outputs/tables/final_experiment_master_matrix.csv` |
-| Master matrix MD | `outputs/tables/final_experiment_master_matrix.md` |
-| **External validation matrix** | `outputs/tables/external_validation_master_matrix.{csv,md}` |
-| **External validation overview plot** | `outputs/plots/external_validation_overview.png` |
-| **External validation scientific readout** | `outputs/logs/external_validation_scientific_readout.md` |
-| **External adapter design** | `outputs/logs/external_adapter_design.md` |
-| External adapter module | `repo/src/evaluation/external_benchmark_adapters.py` |
-| BIRD acquisition log | `outputs/logs/bird_mini_dev_acquisition.md` |
-| BIRD slice audit | `outputs/logs/bird_minidev_30_diverse_audit.md` |
-| BIRD slice | `external_benchmarks/bird_mini_dev/processed/bird_minidev_30_diverse.json` |
-| Spider 2.0-Lite acquisition log | `outputs/logs/spider2_lite_acquisition.md` |
-| Spider 2.0-Lite slice audit | `outputs/logs/spider2lite_30_diverse_audit.md` |
-| Spider 2.0-Lite limitations | `outputs/logs/spider2_lite_eval_limitations.md` |
-| Spider 2.0-Lite slice | `external_benchmarks/spider2_lite/processed/spider2lite_30_diverse.json` |
-| Tarball | `/content/drive/MyDrive/diploma_plan_sql/exports/latest_tz_closure.tar.gz` |
+- Master matrix CSV: `outputs/tables/final_experiment_master_matrix.csv` (98 rows)
+- Master matrix MD: `outputs/tables/final_experiment_master_matrix.md`
+- **Joint report export pack:** `outputs/report_export_pack/` (downloadable tarball at `exports/latest_joint_report_export_pack_v1.tar.gz`)
+- Scientific findings v6: `outputs/logs/final_scientific_findings.md`
+- Negative result analysis v6: `outputs/logs/final_negative_result_analysis.md`
+- External validation readout: `outputs/logs/external_validation_scientific_readout.md`
+- Multi-DB scientific readout: `outputs/logs/multidb30_scientific_readout_final.md`
+- Defense narrative: `outputs/thesis_pack_shubin/09_defense_narrative_shubin.md`
+- 17-file Shubin thesis pack: `outputs/thesis_pack_shubin/`

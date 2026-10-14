@@ -1,4 +1,4 @@
-# Agent / IDE local state
+# IDE local state
 
 # Ephemeral notebook tooling output
 notebooks/PowerShell tool output*.txt
